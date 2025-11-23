@@ -6,7 +6,6 @@ public class CLI {
         System.out.println("Welcome to TeamMate system! \nYou are... \n1. An organizer\n2. A participant \n");
         int choice = UserInput.nextInt();
         if (choice == 1){
-            OrganizerInterface Organizer = new OrganizerInterface();
             OrganizerInterface.runInterface();
         }else if (choice == 2){
             ParticipantSurvey Participant = new ParticipantSurvey();
@@ -25,6 +24,9 @@ class OrganizerInterface{
         Scanner UserInput = new Scanner(System.in);
         System.out.println("Welcome organizer! \n1. Upload a CSV\n2. Create Teams");
         int choice = UserInput.nextInt();
+        UserInput.nextLine();
+
+        HandleCSV.copyFile(choice);
     }
 }
 
