@@ -35,16 +35,32 @@ class ParticipantSurvey{
         int[] Answer = new int[5];
         System.out.println("Welcome participant! \nFor the questions below, provide answers from 1(Strongly Disagree) - 5(Strongly Agree)");
         System.out.println("Q1. I enjoy taking the lead and guiding others during group activities.");
-        Answer[0] = UserInput.nextInt();
+        Answer[0] = inputValidator.scoreValidator();
         System.out.println("Q2. I prefer analyzing situations and coming up with strategic solutions.");
-        Answer[1] = UserInput.nextInt();
+        Answer[1] = inputValidator.scoreValidator();
         System.out.println("Q3. I work well with others and enjoy collaborative teamwork.");
-        Answer[2] = UserInput.nextInt();
+        Answer[2] = inputValidator.scoreValidator();
         System.out.println("Q4. I am calm under pressure and can help maintain team morale.");
-        Answer[3]= UserInput.nextInt();
+        Answer[3] = inputValidator.scoreValidator();
         System.out.println("Q5. I like making quick decisions and adapting in dynamic situations.");
-        Answer[4] = UserInput.nextInt();
+        Answer[4] = inputValidator.scoreValidator();
 
         return Answer;
+    }
+}
+
+class inputValidator{
+    public static int scoreValidator () {
+        Scanner UserInput = new Scanner(System.in);
+        int answer = 0;
+        while (true) {
+            answer = UserInput.nextInt();
+            if(answer>0 && answer<6){
+                System.out.println("Answer accepted");
+                return answer;
+            }else{
+                System.out.println("Answer rejected");
+            }
+        }
     }
 }
