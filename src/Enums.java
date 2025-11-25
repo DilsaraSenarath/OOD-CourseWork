@@ -1,5 +1,5 @@
 public class Enums {
-    enum role{
+    enum Role{
         STRATEGIST("Focuses on tactics and planning. Keeps the bigger picture in mind during gameplay."),
         ATTACKER("Frontline player. Good reflexes, offensive tactics, quick execution."),
         DEFENDER("Protects and supports team stability. Good under pressure and team-focused."),
@@ -8,7 +8,7 @@ public class Enums {
 
         private String description;
 
-        private  role(String description){
+        private  Role(String description){
             this.description = description;
         }
 

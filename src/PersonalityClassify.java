@@ -18,7 +18,7 @@ public class PersonalityClassify {
             this.personalityType = "Thinker";
             return this.personalityType;
         }else{
-            System.out.println("invalid personality score, Take the test again.");
+            System.out.println("Please achieve a higher personality score to be eligible to be a participant");
             this.personalityType = "Invalid";
             return this.personalityType;
         }
