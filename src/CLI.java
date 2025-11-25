@@ -12,11 +12,12 @@ public class CLI {
             OrganizerInterface.runInterface();
         }else if (choice == 2){
             ParticipantSurvey Participant = new ParticipantSurvey();
-            Participant.Questions();
+            List<String> info = ParticipantSurvey.Questions();  // Name, Email, Role
             int[] Answer = Participant.TakeSurvey();
             PersonalityClassify Personality =  new PersonalityClassify();
             String Type = Personality.Classify(Answer);
-            System.out.println("Return is: " + Type);
+            Participant participant = new Participant(info, Type);
+            participant.displayParticipantInfo();
         }else{
 
         }
@@ -35,7 +36,7 @@ class OrganizerInterface{
 }
 
 class ParticipantSurvey{
-    public List<String> Questions(){
+    public static List<String> Questions(){
         Scanner UserInput = new Scanner(System.in);
         System.out.println("Enter your Name:");
         String name = UserInput.nextLine();
