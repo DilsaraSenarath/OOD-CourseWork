@@ -10,7 +10,7 @@ public class HandleCSV {
         Scanner userInput = new Scanner(System.in);
         if (choice == 1){
             System.out.println("Please enter the full path to the CSV file you want to upload:");
-            String sourcePathString = userInput.nextLine();
+            String sourcePathString = userInput.nextLine().replace("\"", "");
 
             // Define the name of the file in the current program directory
             String fileName = Paths.get(sourcePathString).getFileName().toString();

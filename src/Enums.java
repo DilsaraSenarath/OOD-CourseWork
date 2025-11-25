@@ -16,4 +16,14 @@ public class Enums {
             return description;
         }
     }
+
+    enum Game{
+        VALORANT,
+        CSGO,
+        FIFA,
+        DOTA2,
+        CHESS,
+        BASKETBALL;
+
+    }
 }
