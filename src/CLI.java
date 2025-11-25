@@ -1,3 +1,4 @@
+import java.sql.SQLOutput;
 import java.util.Scanner;
 
 public class CLI {
@@ -9,7 +10,8 @@ public class CLI {
             OrganizerInterface.runInterface();
         }else if (choice == 2){
             ParticipantSurvey Participant = new ParticipantSurvey();
-            int[] Answer = Participant.TakeSurvey(UserInput);
+            Participant.Questions();
+            int[] Answer = Participant.TakeSurvey();
             PersonalityClassify Personality =  new PersonalityClassify();
             String Type = Personality.Classify(Answer);
             System.out.println("Return is: " + Type);
@@ -31,9 +33,21 @@ class OrganizerInterface{
 }
 
 class ParticipantSurvey{
-    public int[] TakeSurvey (Scanner UserInput){
+    public String Questions(){
+        Scanner UserInput = new Scanner(System.in);
+        System.out.println("Enter your Name:");
+        String name = UserInput.nextLine();
+        System.out.println("Enter your Email:");
+        String email = UserInput.nextLine();
+        System.out.println("Enter your preferred role");
+        for(Enums.role role:  Enums.role.values()){
+            System.out.println(role +" : " + role.getDescription());
+        }
+        return name + "," + email;
+    }
+    public int[] TakeSurvey (){
         int[] Answer = new int[5];
-        System.out.println("Welcome participant! \nFor the questions below, provide answers from 1(Strongly Disagree) - 5(Strongly Agree)");
+        System.out.println("Personality classification...\nFor the questions below, provide answers from 1(Strongly Disagree) - 5(Strongly Agree)");
         System.out.println("Q1. I enjoy taking the lead and guiding others during group activities.");
         Answer[0] = inputValidator.scoreValidator();
         System.out.println("Q2. I prefer analyzing situations and coming up with strategic solutions.");
