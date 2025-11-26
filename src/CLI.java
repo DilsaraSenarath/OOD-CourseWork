@@ -8,15 +8,24 @@ public class CLI {
         Scanner UserInput = new Scanner(System.in);
         System.out.println("Welcome to TeamMate system! \nYou are... \n1. An organizer\n2. A participant \n");
         int choice = UserInput.nextInt();
+
         if (choice == 1){
             OrganizerInterface.runInterface();
+
         }else if (choice == 2){
             ParticipantSurvey Participant = new ParticipantSurvey();
-            List<String> info = ParticipantSurvey.Questions();  // Name, Email, Role
-            int[] PersonalityScore = Participant.TakeSurvey();
+
+            List<String> info = ParticipantSurvey.Questions();  // Returns Name, Email,Preferred Game, Skill Level, Role
+            int[] PersonalityScore = Participant.TakeSurvey(); //Return PersonalityScore
+            int totalPersonalityScore = 0;
+            for (int a : PersonalityScore) {
+                totalPersonalityScore += a;
+            }
+
             PersonalityClassify Personality =  new PersonalityClassify();
             String Type = Personality.Classify(PersonalityScore);
-            Participant participant = new Participant(info, Type);
+
+            Participant participant = new Participant(info, totalPersonalityScore,Type);
             participant.displayParticipantInfo();
         }else{
 

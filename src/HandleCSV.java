@@ -1,5 +1,5 @@
+import java.io.*;
 import java.util.Scanner;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -30,6 +30,55 @@ public class HandleCSV {
             // Logic for team creation would go here
         } else {
             System.out.println("Invalid choice for organizer.");
+        }
+    }
+
+    private static final String SURVEY_FILE = "surveyParticipant.csv";
+
+    // Generate next ID like SP001, SP002,...
+    public static String generateNextSurveyId() {
+        String lastId = null;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(SURVEY_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                // Each line: ID,Name,Email,Game,Skill,Role,Score,Type
+                String[] parts = line.split(",");
+                if (parts.length > 0) {
+                    lastId = parts[0];
+                }
+            }
+        } catch (IOException e) {
+            // File might not exist yet; we'll start from SP001
+        }
+
+        int nextNumber = 1;
+        if (lastId != null && lastId.startsWith("SP")) {
+            try {
+                String numberPart = lastId.substring(2); // skip "SP"
+                nextNumber = Integer.parseInt(numberPart) + 1;
+            } catch (NumberFormatException e) {
+                nextNumber = 1;
+            }
+        }
+
+        // Format as SP001, SP002, etc.
+        if (nextNumber < 10) {
+            return "SP00" + nextNumber;
+        } else if (nextNumber < 100) {
+            return "SP0" + nextNumber;
+        } else {
+            return "SP" + nextNumber;
+        }
+    }
+
+    // Save one participant to surveyParticipant.csv
+    public static void saveSurveyParticipant(Participant participant) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(SURVEY_FILE, true))) {
+            bw.write(participant.toCSVLine());
+            bw.newLine();
+        } catch (IOException e) {
+            System.out.println("Error writing survey participant CSV: " + e.getMessage());
         }
     }
 }
