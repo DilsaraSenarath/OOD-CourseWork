@@ -38,11 +38,14 @@ class OrganizerInterface{
 class ParticipantSurvey{
     public static List<String> Questions(){
         Scanner UserInput = new Scanner(System.in);
+
         System.out.println("Enter your Name:");
         String name = UserInput.nextLine();
+
         System.out.println("Enter your Email:");
         String email = UserInput.nextLine();
-        System.out.println("Enter your preferred role");
+
+        System.out.println("Select your preferred role");
         int i = 1;
         for(Enums.Role Role:  Enums.Role.values()){
             System.out.println( String.valueOf(i)+". " + Role +" : " + Role.getDescription());
@@ -50,11 +53,23 @@ class ParticipantSurvey{
         }
         int roleNum = inputValidator.scoreValidator(1, i - 1);
         Enums.Role[] roles = Enums.Role.values();
-        String choice = roles[roleNum - 1].toString();
+        String roleChoice = roles[roleNum - 1].toString();
+
+        System.out.println("Select your preferred game");
+        int j = 1;
+        for(Enums.Game Game:  Enums.Game.values()){
+            System.out.println(String.valueOf(j) + ". " + Game);
+            j++;
+        }
+        int gameNum = inputValidator.scoreValidator(1, j - 1);
+        Enums.Game[] games = Enums.Game.values();
+        String gameChoice = games[gameNum - 1].toString();
+
         List<String> participantInfo = new ArrayList<>();
         participantInfo.add(name);
         participantInfo.add(email);
-        participantInfo.add(choice);
+        participantInfo.add(roleChoice);
+        participantInfo.add(gameChoice);
         return participantInfo;
     }
     public int[] TakeSurvey (){

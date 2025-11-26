@@ -8,7 +8,7 @@ public class Enums {
 
         private String description;
 
-        private  Role(String description){
+        Role(String description){
             this.description = description;
         }
 
@@ -24,6 +24,5 @@ public class Enums {
         DOTA2,
         CHESS,
         BASKETBALL;
-
     }
 }
