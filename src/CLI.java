@@ -13,9 +13,9 @@ public class CLI {
         }else if (choice == 2){
             ParticipantSurvey Participant = new ParticipantSurvey();
             List<String> info = ParticipantSurvey.Questions();  // Name, Email, Role
-            int[] Answer = Participant.TakeSurvey();
+            int[] PersonalityScore = Participant.TakeSurvey();
             PersonalityClassify Personality =  new PersonalityClassify();
-            String Type = Personality.Classify(Answer);
+            String Type = Personality.Classify(PersonalityScore);
             Participant participant = new Participant(info, Type);
             participant.displayParticipantInfo();
         }else{
@@ -45,16 +45,6 @@ class ParticipantSurvey{
         System.out.println("Enter your Email:");
         String email = UserInput.nextLine();
 
-        System.out.println("Select your preferred role");
-        int i = 1;
-        for(Enums.Role Role:  Enums.Role.values()){
-            System.out.println( String.valueOf(i)+". " + Role +" : " + Role.getDescription());
-            i++;
-        }
-        int roleNum = inputValidator.scoreValidator(1, i - 1);
-        Enums.Role[] roles = Enums.Role.values();
-        String roleChoice = roles[roleNum - 1].toString();
-
         System.out.println("Select your preferred game");
         int j = 1;
         for(Enums.Game Game:  Enums.Game.values()){
@@ -65,11 +55,26 @@ class ParticipantSurvey{
         Enums.Game[] games = Enums.Game.values();
         String gameChoice = games[gameNum - 1].toString();
 
+        System.out.println("From 1 to 10 (1 = lowest, 10 = Highest),\nWhat is your skill level of the above selected game?");
+        int skillLevel = inputValidator.scoreValidator(1, 10);
+
+        System.out.println("Select your preferred role");
+        int i = 1;
+        for(Enums.Role Role:  Enums.Role.values()){
+            System.out.println( String.valueOf(i)+". " + Role +" : " + Role.getDescription());
+            i++;
+        }
+        int roleNum = inputValidator.scoreValidator(1, i - 1);
+        Enums.Role[] roles = Enums.Role.values();
+        String roleChoice = roles[roleNum - 1].toString();
+
         List<String> participantInfo = new ArrayList<>();
         participantInfo.add(name);
         participantInfo.add(email);
-        participantInfo.add(roleChoice);
         participantInfo.add(gameChoice);
+        participantInfo.add(Integer.toString(skillLevel));
+        participantInfo.add(roleChoice);
+
         return participantInfo;
     }
     public int[] TakeSurvey (){
