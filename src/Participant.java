@@ -57,4 +57,16 @@ public class Participant {
         System.out.println("Personality Score: " + personalityScore);
         System.out.println("Personality Type: " + personalityType);
     }
+
+    // Convert to a CSV line
+    public String toCSVLine() {
+        // Order: ID, Name, Email, Game, Skill, Role, PersonalityScore, PersonalityType
+        return  name + "," +
+                email + "," +
+                game + "," +
+                skillLevel + "," +
+                role + "," +
+                personalityScore + "," +
+                personalityType;
+    }
 }
