@@ -12,24 +12,59 @@ public class CLI {
         if (choice == 1){
             OrganizerInterface.runInterface();
 
-        }else if (choice == 2){
-            ParticipantSurvey Participant = new ParticipantSurvey();
+        } else if (choice == 2) {
 
-            List<String> info = ParticipantSurvey.Questions();  // Returns Name, Email,Preferred Game, Skill Level, Role
-            int[] PersonalityScore = Participant.TakeSurvey(); //Return PersonalityScore
-            int totalPersonalityScore = 0;
-            for (int a : PersonalityScore) {
-                totalPersonalityScore += a;
+            boolean finished = false;
+
+            while (!finished) {
+                ParticipantSurvey Participant = new ParticipantSurvey();
+
+                // Returns Name, Email,Preferred Game, Skill Level, Role
+                List<String> info = ParticipantSurvey.Questions();
+
+                // Return PersonalityScore
+                int[] PersonalityScore = Participant.TakeSurvey();
+                int totalPersonalityScore = 0;
+                for (int a : PersonalityScore) {
+                    totalPersonalityScore += a;
+                }
+
+                PersonalityClassify Personality =  new PersonalityClassify();
+                String Type = Personality.Classify(PersonalityScore);
+
+                Participant participant = new Participant(info, totalPersonalityScore, Type);
+                participant.displayParticipantInfo();
+
+                // Ask user what to do next
+                System.out.println("\nWhat would you like to do?");
+                System.out.println("1. Save my details and survey to CSV");
+                System.out.println("2. Retake the survey");
+                System.out.print("Enter your choice: ");
+
+                int surveyChoice = UserInput.nextInt();
+
+                if (surveyChoice == 1) {
+                    // Save to CSV and finish
+                    HandleCSV.saveSurveyParticipant(participant);
+                    System.out.println("Your details and survey have been saved. Thank you!");
+                    finished = true;
+
+                } else if (surveyChoice == 2) {
+                    // Retake the survey (loop repeats)
+                    System.out.println("You chose to retake the survey.\n");
+
+                } else {
+                    // Any other value: exit participant flow
+                    System.out.println("Invalid choice. Returning to main menu.");
+                    finished = true;
+                }
             }
 
-            PersonalityClassify Personality =  new PersonalityClassify();
-            String Type = Personality.Classify(PersonalityScore);
-
-            Participant participant = new Participant(info, totalPersonalityScore,Type);
-            participant.displayParticipantInfo();
-        }else{
-
+        } else {
+            System.out.println("Invalid choice.");
         }
+
+        UserInput.close();
     }
 }
 

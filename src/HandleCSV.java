@@ -6,9 +6,9 @@ import java.nio.file.StandardCopyOption;
 
 public class HandleCSV {
 
-    public static void  copyFile (int choice) {
+    public static void copyFile(int choice) {
         Scanner userInput = new Scanner(System.in);
-        if (choice == 1){
+        if (choice == 1) {
             System.out.println("Please enter the full path to the CSV file you want to upload:");
             String sourcePathString = userInput.nextLine().replace("\"", "");
 
@@ -22,10 +22,9 @@ public class HandleCSV {
                 System.out.println("Success! CSV file copied to: " + targetPathString);
             } catch (IOException e) {
                 System.out.println("Error copying file. Make sure the path is correct and the file exists.");
-                // Printing the exception details for debugging
                 // System.err.println("I/O Error: " + e.getMessage());
             }
-        } else if (choice == 2){
+        } else if (choice == 2) {
             System.out.println("Starting team creation process...");
             // Logic for team creation would go here
         } else {
@@ -33,9 +32,10 @@ public class HandleCSV {
         }
     }
 
+    // CSV file that stores survey participants
     private static final String SURVEY_FILE = "surveyParticipant.csv";
 
-    // Generate next ID like SP001, SP002,...
+    // Generate next ID like SP001, SP002, ...
     public static String generateNextSurveyId() {
         String lastId = null;
 
@@ -73,9 +73,13 @@ public class HandleCSV {
     }
 
     // Save one participant to surveyParticipant.csv
+    // Line format: ID,Name,Email,Game,SkillLevel,Role,PersonalityScore,PersonalityType
     public static void saveSurveyParticipant(Participant participant) {
+        String id = generateNextSurveyId();                 // e.g. SP001
+        String line = id + "," + participant.toCSVLine();   // add ID in front
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(SURVEY_FILE, true))) {
-            bw.write(participant.toCSVLine());
+            bw.write(line);
             bw.newLine();
         } catch (IOException e) {
             System.out.println("Error writing survey participant CSV: " + e.getMessage());
