@@ -6,62 +6,82 @@ import java.util.Scanner;
 public class CLI {
     public static void main (String[] args){
         Scanner UserInput = new Scanner(System.in);
-        System.out.println("Welcome to TeamMate system! \nYou are... \n1. An organizer\n2. A participant \n");
-        int choice = UserInput.nextInt();
 
-        if (choice == 1){
-            OrganizerInterface.runInterface();
+        // Flag to keep the application running until the user chooses to exit
+        boolean systemActive = true;
 
-        } else if (choice == 2) {
+        while (systemActive) {
+            System.out.println("\n=================================");
+            System.out.println("Welcome to TeamMate system!");
+            System.out.println("Please select your role:");
+            System.out.println("1. An organizer");
+            System.out.println("2. A participant");
+            System.out.println("3. Exit System");
+            System.out.println("=================================");
+            System.out.print("Enter choice: ");
 
-            boolean finished = false;
+            int choice = UserInput.nextInt();
 
-            while (!finished) {
-                ParticipantSurvey Participant = new ParticipantSurvey();
+            if (choice == 1){
+                // Run Organizer Logic
+                OrganizerInterface.runInterface();
 
-                // Returns Name, Email,Preferred Game, Skill Level, Role
-                List<String> info = ParticipantSurvey.Questions();
+            } else if (choice == 2) {
+                // Run Participant Logic
+                boolean finished = false;
 
-                // Return PersonalityScore
-                int[] PersonalityScore = Participant.TakeSurvey();
-                int totalPersonalityScore = 0;
-                for (int a : PersonalityScore) {
-                    totalPersonalityScore += a;
+                while (!finished) {
+                    ParticipantSurvey Participant = new ParticipantSurvey();
+
+                    // Returns Name, Email,Preferred Game, Skill Level, Role
+                    List<String> info = ParticipantSurvey.Questions();
+
+                    // Return PersonalityScore
+                    int[] PersonalityScore = Participant.TakeSurvey();
+                    int totalPersonalityScore = 0;
+                    for (int a : PersonalityScore) {
+                        totalPersonalityScore += a;
+                    }
+
+                    PersonalityClassify Personality =  new PersonalityClassify();
+                    String Type = Personality.Classify(PersonalityScore);
+
+                    Participant participant = new Participant(info, totalPersonalityScore, Type);
+                    participant.displayParticipantInfo();
+
+                    // Ask user what to do next
+                    System.out.println("\nWhat would you like to do?");
+                    System.out.println("1. Save my details and survey to CSV");
+                    System.out.println("2. Retake the survey");
+                    System.out.print("Enter your choice: ");
+
+                    int surveyChoice = UserInput.nextInt();
+
+                    if (surveyChoice == 1) {
+                        // Save to CSV and finish this participant loop
+                        HandleCSV.saveSurveyParticipant(participant);
+                        System.out.println("Your details and survey have been saved. Thank you!");
+                        finished = true; // Breaks the participant loop, returns to Main Menu
+
+                    } else if (surveyChoice == 2) {
+                        // Retake the survey (loop repeats)
+                        System.out.println("You chose to retake the survey.\n");
+
+                    } else {
+                        // Any other value: exit participant flow
+                        System.out.println("Invalid choice. Returning to main menu.");
+                        finished = true;
+                    }
                 }
 
-                PersonalityClassify Personality =  new PersonalityClassify();
-                String Type = Personality.Classify(PersonalityScore);
+            } else if (choice == 3) {
+                // Exit the main loop
+                System.out.println("Exiting TeamMate System. Goodbye!");
+                systemActive = false;
 
-                Participant participant = new Participant(info, totalPersonalityScore, Type);
-                participant.displayParticipantInfo();
-
-                // Ask user what to do next
-                System.out.println("\nWhat would you like to do?");
-                System.out.println("1. Save my details and survey to CSV");
-                System.out.println("2. Retake the survey");
-                System.out.print("Enter your choice: ");
-
-                int surveyChoice = UserInput.nextInt();
-
-                if (surveyChoice == 1) {
-                    // Save to CSV and finish
-                    HandleCSV.saveSurveyParticipant(participant);
-                    System.out.println("Your details and survey have been saved. Thank you!");
-                    finished = true;
-
-                } else if (surveyChoice == 2) {
-                    // Retake the survey (loop repeats)
-                    System.out.println("You chose to retake the survey.\n");
-
-                } else {
-                    // Any other value: exit participant flow
-                    System.out.println("Invalid choice. Returning to main menu.");
-                    finished = true;
-                }
+            } else {
+                System.out.println("Invalid choice. Please try again.");
             }
-
-        } else {
-            System.out.println("Invalid choice.");
         }
 
         UserInput.close();
@@ -71,7 +91,11 @@ public class CLI {
 class OrganizerInterface {
     public static void runInterface (){
         Scanner UserInput = new Scanner(System.in);
-        System.out.println("Welcome organizer! \n1. Upload a CSV\n2. Create Teams");
+        System.out.println("\n--- Organizer Menu ---");
+        System.out.println("1. Upload a CSV");
+        System.out.println("2. Create Teams");
+        System.out.print("Enter choice: ");
+
         int choice = UserInput.nextInt();
         UserInput.nextLine(); // consume newline
 
@@ -83,23 +107,23 @@ class OrganizerInterface {
 
             System.out.println("Processing data and forming teams...");
 
-            // CONCURRENCY REQUIREMENT [cite: 55]
-            // Using a basic Thread as requested
+
             Thread processingThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     // Call the new logic
                     TeamBuilder.createTeams(teamSize);
-                    System.out.println("\nProcess complete.");
+                    System.out.println("\nProcess complete. Press Enter to return to menu...");
                 }
             });
 
             processingThread.start();
 
-            // Wait for thread to finish so main menu doesn't pop up instantly
             try {
                 processingThread.join();
-            } catch (InterruptedException e) {
+                // Pause so the user can read the output before the menu appears again
+                System.in.read();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

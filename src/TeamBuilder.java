@@ -1,10 +1,13 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class TeamBuilder {
 
-    // Inner class to represent a formed Team (makes calculations easier)
+    // Inner class to represent a formed Team
     static class Team {
         List<Participant> members = new ArrayList<>();
         int teamId;
@@ -13,39 +16,14 @@ public class TeamBuilder {
             this.teamId = id;
         }
 
-        // Helper: Count how many members play a specific game
         public int countGame(String game) {
             int count = 0;
             for (Participant p : members) {
-                if (p.getGame().equalsIgnoreCase(game)) {
-                    count++;
-                }
+                if (p.getGame().equalsIgnoreCase(game)) count++;
             }
             return count;
         }
 
-        // Helper: Count members with a specific personality type
-        public int countPersonality(String type) {
-            int count = 0;
-            for (Participant p : members) {
-                if (p.getPersonalityType().equalsIgnoreCase(type)) {
-                    count++;
-                }
-            }
-            return count;
-        }
-
-        // Helper: Check if adding this role helps diversity
-        public boolean hasRole(Enums.Role role) {
-            for (Participant p : members) {
-                if (p.getRole() == role) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        // Helper: Calculate average skill of the current team
         public double getAverageSkill() {
             if (members.isEmpty()) return 0;
             int sum = 0;
@@ -57,119 +35,174 @@ public class TeamBuilder {
     }
 
     public static void createTeams(int teamSize) {
-        // 1. Load Data
+        // 1. Load and Shuffle Data
         List<Participant> allPlayers = HandleCSV.loadParticipants();
 
-        if (allPlayers.size() < teamSize) {
-            System.out.println("Not enough participants to form a full team.");
+        if (allPlayers.isEmpty()) {
+            System.out.println("No participants found.");
             return;
         }
 
-        // 2. Randomization [cite: 44]
-        // This satisfies "Randomization within Constraints"
         Collections.shuffle(allPlayers);
 
         List<Team> formedTeams = new ArrayList<>();
         int teamCounter = 1;
+        boolean canFormMoreTeams = true;
 
-        // 3. Build Teams Loop
-        while (allPlayers.size() >= teamSize) {
+        // 2. Build Teams Loop
+        while (canFormMoreTeams && !allPlayers.isEmpty()) {
             Team currentTeam = new Team(teamCounter);
 
-            // Try to fill the team with 'teamSize' players
-            for (int i = 0; i < teamSize; i++) {
+            // --- STEP 1: FIND A LEADER (Mandatory) ---
+            Participant leader = findParticipant(allPlayers, currentTeam, "Leader");
 
-                Participant bestCandidate = null;
-                int bestCandidateIndex = -1;
-
-                // Look through available players to find a fit
-                for (int j = 0; j < allPlayers.size(); j++) {
-                    Participant candidate = allPlayers.get(j);
-
-                    if (fitsCriteria(currentTeam, candidate, teamSize)) {
-                        bestCandidate = candidate;
-                        bestCandidateIndex = j;
-                        break; // Found a match, stop looking
-                    }
-                }
-
-                // FALLBACK: If strict criteria failed, just take the first available person
-                // (Otherwise the while loop never finishes)
-                if (bestCandidate == null) {
-                    bestCandidate = allPlayers.get(0);
-                    bestCandidateIndex = 0;
-                }
-
-                // Add to team and remove from pool
-                currentTeam.members.add(bestCandidate);
-                allPlayers.remove(bestCandidateIndex);
+            if (leader == null) {
+                // If no Leader is available, we cannot start a team. Stop.
+                canFormMoreTeams = false;
+                break;
+            } else {
+                currentTeam.members.add(leader);
+                allPlayers.remove(leader);
             }
 
-            formedTeams.add(currentTeam);
-            teamCounter++;
+            // --- STEP 2: FIND THINKERS (Priority 2) ---
+            // If teamSize is small (<4), we only fill up to the limit.
+            int thinkersNeeded = 0;
+            if (teamSize >= 2) thinkersNeeded++;
+            if (teamSize >= 3) thinkersNeeded++;
+
+            for (int i = 0; i < thinkersNeeded; i++) {
+                // Stop trying to add thinkers if we already reached team size (e.g. if size is 2)
+                if (currentTeam.members.size() >= teamSize) break;
+
+                Participant thinker = findParticipant(allPlayers, currentTeam, "Thinker");
+                if (thinker != null) {
+                    currentTeam.members.add(thinker);
+                    allPlayers.remove(thinker);
+                }
+            }
+
+            // --- STEP 3: FILL REST WITH BALANCED (Priority 3) ---
+            while (currentTeam.members.size() < teamSize) {
+                Participant balanced = findParticipant(allPlayers, currentTeam, "Balanced");
+
+                if (balanced != null) {
+                    currentTeam.members.add(balanced);
+                    allPlayers.remove(balanced);
+                } else {
+                    // Ran out of Balanced players to fill the slots
+                    break;
+                }
+            }
+
+            // --- STEP 4: STRICT SIZE CHECK ---
+            // This ensures we don't accept incomplete teams (e.g. just a leader)
+            if (currentTeam.members.size() == teamSize) {
+                formedTeams.add(currentTeam);
+                teamCounter++;
+            } else {
+                System.out.println("Could not fill Team " + teamCounter + " (Size: " + currentTeam.members.size() + "/" + teamSize + "). Stopping.");
+                // Return the members of this failed team back to the pool so they are saved as leftovers
+                allPlayers.addAll(currentTeam.members);
+                canFormMoreTeams = false; // Stop the main loop
+            }
         }
 
-        // 4. Output Results
-        displayAndSaveTeams(formedTeams);
+        // 3. Output Results
+        displayTeams(formedTeams);
+
+        // 4. Save Leftovers to CSV
+        saveLeftovers(allPlayers);
     }
 
-    // THE CRITERIA LOGIC
-    private static boolean fitsCriteria(Team team, Participant p, int maxTeamSize) {
+    // Helper: Find a specific type of participant that fits criteria
+    private static Participant findParticipant(List<Participant> sourceList, Team team, String requiredType) {
+        for (Participant p : sourceList) {
+            // Check if Type matches
+            if (p.getPersonalityType().equalsIgnoreCase(requiredType)) {
+                // Check if Game/Skill criteria match
+                if (fitsCriteria(team, p)) {
+                    return p;
+                }
+            }
+        }
+        return null; // None found
+    }
 
-        // CRITERIA 1: Game Variety [cite: 27]
-        // "Use a cap per game (e.g., max 2 from same game per team)."
+    // Helper: Check Game constraints and Skill Balance
+    private static boolean fitsCriteria(Team team, Participant p) {
+
+        // "Max 2 from same game per team"
         if (team.countGame(p.getGame()) >= 2) {
             return false;
         }
 
-        // CRITERIA 2: Personality Mix [cite: 30]
-        // "1 Leader, 1-2 Thinkers, Remaining as Balanced"
-        String pType = p.getPersonalityType();
-
-        if (pType.equalsIgnoreCase("Leader")) {
-            // Only 1 leader allowed
-            if (team.countPersonality("Leader") >= 1) return false;
-        }
-        else if (pType.equalsIgnoreCase("Thinker")) {
-            // Max 2 thinkers allowed
-            if (team.countPersonality("Thinker") >= 2) return false;
-        }
-        // "Balanced" has no max cap, so we don't check it.
-
-        // CRITERIA 3: Skill Balance [cite: 28]
-        // "Avoid stacking all high-skill players."
-        int pSkill = Integer.parseInt(p.getSkillLevel());
-        if (team.members.size() > 0) {
+        // "Avoid stacking all high-skill players"
+        // If team average is already High (>8) and new player is High (>8), reject.
+        if (!team.members.isEmpty()) {
             double currentAvg = team.getAverageSkill();
-            // If team is already very strong (avg > 8) and this player is strong (>8), skip them
+            int pSkill = Integer.parseInt(p.getSkillLevel());
             if (currentAvg > 8.0 && pSkill > 8) {
                 return false;
             }
         }
 
-        // CRITERIA 4: Role Diversity
-        // "Ensure at least 3 different roles"
-        // This is hard to enforce strictly while building, but we can prioritize unique roles.
-        // If the team doesn't have this role yet, it's a GOOD match.
-        // If the team already has this role, and we are nearly full, maybe skip?
-        // (Keeping it simple for now: valid if other checks pass)
-
         return true;
     }
 
-    private static void displayAndSaveTeams(List<Team> teams) {
+    private static void displayTeams(List<Team> teams) {
         System.out.println("\n--- TEAMS CREATED ---");
-        // Logic to save to CSV would go here (similar to HandleCSV.save)
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("formed_teams.csv"))) {
+            bw.write("TeamID,Role,Name,Game,Skill,PersonalityType");
+            bw.newLine();
 
-        for (Team t : teams) {
-            System.out.println("Team " + t.teamId + " (Avg Skill: " + String.format("%.2f", t.getAverageSkill()) + ")");
-            for (Participant p : t.members) {
-                System.out.println(" - " + p.getName() +
-                        " | " + p.getGame() +
-                        " | " + p.getRole() +
-                        " | " + p.getPersonalityType());
+            for (Team t : teams) {
+                System.out.println("Team " + t.teamId + " (Avg Skill: " + String.format("%.2f", t.getAverageSkill()) + ")");
+                for (Participant p : t.members) {
+                    // Print to Console
+                    System.out.println(" - " + p.getPersonalityType() + " | " + p.getName() +
+                            " | " + p.getGame() + " (" + p.getSkillLevel() + ")");
+
+                    // Write to CSV
+                    String csvLine = t.teamId + "," + p.getRole() + "," + p.getName() + "," +
+                            p.getGame() + "," + p.getSkillLevel() + "," + p.getPersonalityType();
+                    bw.write(csvLine);
+                    bw.newLine();
+                }
+                System.out.println("---------------------");
             }
-            System.out.println("---------------------");
+            System.out.println("Teams saved to 'formed_teams.csv'");
+        } catch (IOException e) {
+            System.out.println("Error saving formed teams: " + e.getMessage());
+        }
+    }
+
+    private static void saveLeftovers(List<Participant> leftovers) {
+        if (leftovers.isEmpty()) {
+            System.out.println("All participants were assigned to teams!");
+            return;
+        }
+
+        System.out.println("\n" + leftovers.size() + " participants could not be assigned (Leftovers).");
+        System.out.println("Saving leftovers to leftovers.csv...");
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("leftovers.csv"))) {
+            // Write Header
+            bw.write("ID,Name,Email,Game,Skill,Role,PersonalityScore,PersonalityType");
+            bw.newLine();
+
+            int idCounter = 1;
+            for (Participant p : leftovers) {
+                // Generate a temporary ID for the leftover file
+                String line = "LO" + idCounter + "," + p.toCSVLine();
+                bw.write(line);
+                bw.newLine();
+                idCounter++;
+            }
+            System.out.println("Leftovers saved successfully.");
+
+        } catch (IOException e) {
+            System.out.println("Error saving leftovers: " + e.getMessage());
         }
     }
 }
