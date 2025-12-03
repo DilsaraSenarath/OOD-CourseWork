@@ -68,14 +68,41 @@ public class CLI {
     }
 }
 
-class OrganizerInterface{
+class OrganizerInterface {
     public static void runInterface (){
         Scanner UserInput = new Scanner(System.in);
         System.out.println("Welcome organizer! \n1. Upload a CSV\n2. Create Teams");
         int choice = UserInput.nextInt();
-        UserInput.nextLine();
+        UserInput.nextLine(); // consume newline
 
-        HandleCSV.copyFile(choice);
+        if (choice == 1) {
+            HandleCSV.copyFile(choice);
+        } else if (choice == 2) {
+            System.out.println("Enter preferred team size (e.g., 5):");
+            int teamSize = UserInput.nextInt();
+
+            System.out.println("Processing data and forming teams...");
+
+            // CONCURRENCY REQUIREMENT [cite: 55]
+            // Using a basic Thread as requested
+            Thread processingThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    // Call the new logic
+                    TeamBuilder.createTeams(teamSize);
+                    System.out.println("\nProcess complete.");
+                }
+            });
+
+            processingThread.start();
+
+            // Wait for thread to finish so main menu doesn't pop up instantly
+            try {
+                processingThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
 
