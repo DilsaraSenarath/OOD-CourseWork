@@ -18,12 +18,12 @@ class ParticipantSurvey{
             System.out.println(String.valueOf(j) + ". " + Game);
             j++;
         }
-        int gameNum = InputValidator.scoreValidator(1, j - 1);
+        int gameNum = InputValidator.numberValidator(1, j - 1);
         Enums.Game[] games = Enums.Game.values();
         String gameChoice = games[gameNum - 1].toString();
 
         System.out.println("From 1 to 10 (1 = lowest, 10 = Highest),\nWhat is your skill level of the above selected game?");
-        int skillLevel = InputValidator.scoreValidator(1, 10);
+        int skillLevel = InputValidator.numberValidator(1, 10);
 
         System.out.println("Select your preferred role");
         int i = 1;
@@ -31,7 +31,7 @@ class ParticipantSurvey{
             System.out.println( String.valueOf(i)+". " + Role +" : " + Role.getDescription());
             i++;
         }
-        int roleNum = InputValidator.scoreValidator(1, i - 1);
+        int roleNum = InputValidator.numberValidator(1, i - 1);
         Enums.Role[] roles = Enums.Role.values();
         String roleChoice = roles[roleNum - 1].toString();
 
@@ -48,15 +48,15 @@ class ParticipantSurvey{
         int[] Answer = new int[5];
         System.out.println("Personality classification...\nFor the questions below, provide answers from 1(Strongly Disagree) - 5(Strongly Agree)");
         System.out.println("Q1. I enjoy taking the lead and guiding others during group activities.");
-        Answer[0] = InputValidator.scoreValidator(1,5);
+        Answer[0] = InputValidator.numberValidator(1,5);
         System.out.println("Q2. I prefer analyzing situations and coming up with strategic solutions.");
-        Answer[1] = InputValidator.scoreValidator(1,5);
+        Answer[1] = InputValidator.numberValidator(1,5);
         System.out.println("Q3. I work well with others and enjoy collaborative teamwork.");
-        Answer[2] = InputValidator.scoreValidator(1,5);
+        Answer[2] = InputValidator.numberValidator(1,5);
         System.out.println("Q4. I am calm under pressure and can help maintain team morale.");
-        Answer[3] = InputValidator.scoreValidator(1,5);
+        Answer[3] = InputValidator.numberValidator(1,5);
         System.out.println("Q5. I like making quick decisions and adapting in dynamic situations.");
-        Answer[4] = InputValidator.scoreValidator(1,5);
+        Answer[4] = InputValidator.numberValidator(1,5);
 
         return Answer;
     }

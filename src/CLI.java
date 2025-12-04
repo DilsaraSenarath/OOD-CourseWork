@@ -20,10 +20,8 @@ public class CLI {
             System.out.println("2. A participant");
             System.out.println("3. Exit System");
             System.out.println("=================================");
-            System.out.print("Enter choice: ");
-
-            int choice = UserInput.nextInt();
-
+            System.out.println("Enter choice: ");
+            int choice = InputValidator.numberValidator(1,3);
             if (choice == 1){
                 // Run Organizer Logic
                 OrganizerInterface.runInterface();
@@ -57,7 +55,7 @@ public class CLI {
                     System.out.println("2. Retake the survey");
                     System.out.print("Enter your choice: ");
 
-                    int surveyChoice = UserInput.nextInt();
+                    int surveyChoice = InputValidator.numberValidator(1, 2);
 
                     if (surveyChoice == 1) {
                         // Save to CSV and finish this participant loop
@@ -69,10 +67,6 @@ public class CLI {
                         // Retake the survey (loop repeats)
                         System.out.println("You chose to retake the survey.\n");
 
-                    } else {
-                        // Any other value: exit participant flow
-                        System.out.println("Invalid choice. Returning to main menu.");
-                        finished = true;
                     }
                 }
 

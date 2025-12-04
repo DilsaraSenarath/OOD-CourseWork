@@ -3,7 +3,7 @@ import java.util.Scanner;
 class InputValidator {
 
     // We use a specific logic to ensure the app doesn't crash on letters
-    public static int scoreValidator(int min, int max) {
+    public static int numberValidator(int min, int max) {
         // ideally, pass the scanner as an argument, but for this structure:Z
         Scanner userInput = new Scanner(System.in);
 
@@ -16,7 +16,6 @@ class InputValidator {
 
                 // 2. Check Range Logic
                 if (answer >= min && answer <= max) {
-                    System.out.println("Answer accepted");
                     return answer;
                 } else {
                     System.out.println("Invalid range. Please enter a number between " + min + " and " + max + ".");
@@ -27,6 +26,7 @@ class InputValidator {
                 System.out.println("Invalid input: \"" + badInput + "\". Please enter a valid number.");
             }
             // The loop repeats until a valid number in the correct range is returned
+            userInput.nextLine();
         }
     }
 }

@@ -8,14 +8,14 @@ class OrganizerInterface {
         System.out.println("2. Create Teams");
         System.out.print("Enter choice: ");
 
-        int choice = UserInput.nextInt();
+        int choice = InputValidator.numberValidator(1, 2);
         UserInput.nextLine(); // consume newline
 
         if (choice == 1) {
             HandleCSV.copyFile(choice);
         } else if (choice == 2) {
             System.out.println("Enter preferred team size (e.g., 5):");
-            int teamSize = UserInput.nextInt();
+            int teamSize = InputValidator.numberValidator(0, 999);
 
             System.out.println("Processing data and forming teams...");
 

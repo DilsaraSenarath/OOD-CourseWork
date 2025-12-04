@@ -6,12 +6,6 @@ public class AppLogger {
         // Get the global logger to configure it once
         Logger rootLogger = Logger.getLogger("");
 
-        // Remove default handlers (which print ugly 2-line red text)
-        Handler[] handlers = rootLogger.getHandlers();
-        if (handlers.length > 0 && handlers[0] instanceof ConsoleHandler) {
-            rootLogger.removeHandler(handlers[0]);
-        }
-
         // Create a new Console Handler
         ConsoleHandler consoleHandler = new ConsoleHandler();
         consoleHandler.setLevel(Level.ALL);
