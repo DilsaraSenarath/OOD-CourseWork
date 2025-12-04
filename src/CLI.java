@@ -46,7 +46,7 @@ public class CLI {
                     }
 
                     PersonalityClassify Personality =  new PersonalityClassify();
-                    String Type = Personality.Classify(PersonalityScore);
+                    String Type = Personality.classify(PersonalityScore);
 
                     Participant participant = new Participant(info, totalPersonalityScore, Type);
                     participant.displayParticipantInfo();
