@@ -45,8 +45,8 @@ public class CLI {
                         totalPersonalityScore += a;
                     }
 
-                    PersonalityClassify Personality =  new PersonalityClassify();
-                    String Type = Personality.classify(PersonalityScore);
+                    PersonalityClassify surveyHelper =  new PersonalityClassify();
+                    String Type = surveyHelper.classify(PersonalityScore);
 
                     Participant participant = new Participant(info, totalPersonalityScore, Type);
                     participant.displayParticipantInfo();
