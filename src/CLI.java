@@ -2,9 +2,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 public class CLI {
+    private static final Logger LOGGER = Logger.getLogger(CLI.class.getName());
     public static void main (String[] args){
+        AppLogger.setup();
+        LOGGER.info("System Initialized...");
         Scanner UserInput = new Scanner(System.in);
 
         // Flag to keep the application running until the user chooses to exit
@@ -76,6 +80,7 @@ public class CLI {
 
             } else if (choice == 3) {
                 // Exit the main loop
+                LOGGER.info("System shutting down.");
                 System.out.println("Exiting TeamMate System. Goodbye!");
                 systemActive = false;
 

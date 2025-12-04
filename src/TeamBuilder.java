@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class TeamBuilder {
+    private static final Logger LOGGER = Logger.getLogger(TeamBuilder.class.getName());
 
     // Inner class to represent a formed Team
     static class Team {
@@ -35,6 +37,7 @@ public class TeamBuilder {
     }
 
     public static void createTeams(int teamSize) {
+        LOGGER.info("Starting team formation. Target size: " + teamSize);
         // 1. Load and Shuffle Data
         List<Participant> allPlayers = HandleCSV.loadParticipants();
 
@@ -99,14 +102,19 @@ public class TeamBuilder {
             // This ensures we don't accept incomplete teams (e.g. just a leader)
             if (currentTeam.members.size() == teamSize) {
                 formedTeams.add(currentTeam);
+                LOGGER.info("Formed Team " + teamCounter);
                 teamCounter++;
             } else {
                 System.out.println("Could not fill Team " + teamCounter + " (Size: " + currentTeam.members.size() + "/" + teamSize + "). Stopping.");
                 // Return the members of this failed team back to the pool so they are saved as leftovers
                 allPlayers.addAll(currentTeam.members);
+                LOGGER.warning("Could not fill Team " + teamCounter + ". Disbanding.");
                 canFormMoreTeams = false; // Stop the main loop
             }
         }
+
+        LOGGER.info("Process finished. Total teams formed: " + formedTeams.size());
+        saveLeftovers(allPlayers);
 
         // 3. Output Results
         displayTeams(formedTeams);
@@ -179,6 +187,7 @@ public class TeamBuilder {
 
     private static void saveLeftovers(List<Participant> leftovers) {
         if (leftovers.isEmpty()) {
+            LOGGER.info("Saving " + leftovers.size() + " leftovers to CSV.");
             System.out.println("All participants were assigned to teams!");
             return;
         }
@@ -202,6 +211,7 @@ public class TeamBuilder {
             System.out.println("Leftovers saved successfully.");
 
         } catch (IOException e) {
+            LOGGER.severe("Failed to save leftovers: " + e.getMessage());
             System.out.println("Error saving leftovers: " + e.getMessage());
         }
     }

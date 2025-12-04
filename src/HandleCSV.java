@@ -5,8 +5,10 @@ import java.util.Scanner;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.logging.Logger;
 
 public class HandleCSV {
+    private static final Logger LOGGER = Logger.getLogger(HandleCSV.class.getName());
 
     private static final String SURVEY_FILE = "surveyParticipant.csv";
     private static final String ORGANIZER_FILE = "OrganizerParticipants.csv";
@@ -75,6 +77,7 @@ public class HandleCSV {
     // --- LOADING LOGIC ---
 
     public static List<Participant> loadParticipants() {
+        LOGGER.info("Reading participant files...");
         List<Participant> allParticipants = new ArrayList<>();
 
         System.out.println("Loading participants...");
@@ -89,6 +92,7 @@ public class HandleCSV {
         File file = new File(fileName);
 
         if (!file.exists()) {
+            LOGGER.warning("File not found: " + fileName + " (Skipping)");
             return;
         }
 
@@ -123,11 +127,13 @@ public class HandleCSV {
                     // Skip header row
                     continue;
                 } catch (IllegalArgumentException e) {
+                    LOGGER.warning("Skipped invalid role in " + fileName);
                     // This catches the Enum error if the Role is completely wrong (e.g. "Sniper")
                     System.out.println("Warning: Skipping participant " + data[1] + " due to invalid Role: " + data[5]);
                 }
             }
         } catch (IOException e) {
+            LOGGER.severe("Error reading " + fileName + ": " + e.getMessage());
             System.out.println("Error reading file " + fileName + ": " + e.getMessage());
         }
     }
