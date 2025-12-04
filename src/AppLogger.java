@@ -1,6 +1,4 @@
 import java.util.logging.*;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 
 public class AppLogger {
 

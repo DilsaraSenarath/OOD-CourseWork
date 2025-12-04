@@ -1,18 +1,17 @@
 import java.util.List;
 
-public class Participant {
-    private String name;
-    private String email;
+public class Participant extends User implements CSVWritable {
+
     private String game;
     private String skillLevel;
     private Enums.Role role;
     private int personalityScore;
     private String personalityType;
 
-    // Constructor using the list from Questions() and the personality type
     public Participant(List<String> info, int totalPersonalityScore, String type) {
-        this.name = info.get(0);
-        this.email = info.get(1);
+        // CHANGE 2: Pass name/email to parent constructor (super)
+        super(info.get(0), info.get(1));
+
         this.game = info.get(2);
         this.skillLevel = info.get(3);
         this.role = Enums.Role.valueOf(info.get(4)); // Convert string back to Enum
@@ -21,13 +20,6 @@ public class Participant {
     }
 
     // Getters
-    public String getName() {
-        return name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
     public String getGame() {
         return game;
     }
@@ -59,14 +51,9 @@ public class Participant {
     }
 
     // Convert to a CSV line
+    @Override
     public String toCSVLine() {
-        // Order: ID, Name, Email, Game, Skill, Role, PersonalityScore, PersonalityType
-        return  name + "," +
-                email + "," +
-                game + "," +
-                skillLevel + "," +
-                role + "," +
-                personalityScore + "," +
-                personalityType;
+        return name + "," + email + "," + game + "," + skillLevel + "," +
+                role + "," + personalityScore + "," + personalityType;
     }
 }

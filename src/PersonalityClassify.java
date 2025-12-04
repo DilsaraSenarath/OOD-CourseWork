@@ -1,7 +1,7 @@
 
 public class PersonalityClassify {
-    int totalScore;
-    String personalityType;
+    private int totalScore;
+    private String personalityType;
 
     public String classify(int[] Ans){
         this.totalScore = (Ans[0] + Ans[1] + Ans[2] + Ans[3] + Ans[4])*4;

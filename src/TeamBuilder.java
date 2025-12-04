@@ -10,9 +10,16 @@ public class TeamBuilder {
     private static final Logger LOGGER = Logger.getLogger(TeamBuilder.class.getName());
 
     // Inner class to represent a formed Team
-    static class Team {
+    static class Team implements CSVWritable {
         List<Participant> members = new ArrayList<>();
         int teamId;
+
+        @Override
+        public String toCSVLine() {
+            // Defines how a TEAM writes itself to CSV
+            return teamId + "," + getAverageSkill() + "," + members.size();
+        }
+
 
         public Team(int id) {
             this.teamId = id;
