@@ -13,7 +13,7 @@ public class PersonalityClassify {
             System.out.println("Your personality type is a \"Balanced\"");
             this.personalityType = "Balanced";
             return this.personalityType;
-        }else if (this.totalScore < 70 && this.totalScore >= 50) {
+        }else if (this.totalScore < 70 && this.totalScore >= 0) {
             System.out.println("Your personality type is a \"Thinker\"");
             this.personalityType = "Thinker";
             return this.personalityType;

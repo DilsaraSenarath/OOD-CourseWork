@@ -31,13 +31,13 @@ public class CLI {
                 boolean finished = false;
 
                 while (!finished) {
-                    ParticipantSurvey Participant = new ParticipantSurvey();
+                    ParticipantSurvey participantSurvey = new ParticipantSurvey();
 
                     // Returns Name, Email,Preferred Game, Skill Level, Role
                     List<String> info = ParticipantSurvey.Questions();
 
                     // Return PersonalityScore
-                    int[] PersonalityScore = Participant.TakeSurvey();
+                    int[] PersonalityScore = participantSurvey.TakeSurvey();
                     int totalPersonalityScore = 0;
                     for (int a : PersonalityScore) {
                         totalPersonalityScore += a;

@@ -6,25 +6,32 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Core logic class responsible for forming teams based on algorithmic constraints.
+ * It handles loading data, applying selection rules, and exporting results.
+ */
 public class TeamBuilder {
     private static final Logger LOGGER = Logger.getLogger(TeamBuilder.class.getName());
 
-    // Inner class to represent a formed Team
+    /**
+     * Internal helper class representing a single team entity.
+     * Contains methods to calculate team statistics and validate composition.
+     */
     static class Team implements CSVWritable {
         List<Participant> members = new ArrayList<>();
         int teamId;
-
-        @Override
-        public String toCSVLine() {
-            // Defines how a TEAM writes itself to CSV
-            return teamId + "," + getAverageSkill() + "," + members.size();
-        }
-
 
         public Team(int id) {
             this.teamId = id;
         }
 
+        @Override
+        public String toCSVLine() {
+            // Formats team summary data for CSV output
+            return teamId + "," + getAverageSkill() + "," + members.size();
+        }
+
+        // Counts how many members play a specific game (used for diversity checks)
         public int countGame(String game) {
             int count = 0;
             for (Participant p : members) {
@@ -33,6 +40,7 @@ public class TeamBuilder {
             return count;
         }
 
+        // Calculates the average skill level of the current team members
         public double getAverageSkill() {
             if (members.isEmpty()) return 0;
             int sum = 0;
@@ -43,9 +51,14 @@ public class TeamBuilder {
         }
     }
 
+    /**
+     * Main algorithm to generate teams of a specific size using personality and skill logic.
+     * @param teamSize The target number of members per team.
+     */
     public static void createTeams(int teamSize) {
         LOGGER.info("Starting team formation. Target size: " + teamSize);
-        // 1. Load and Shuffle Data
+
+        // 1. Load Data: Retrieve participants from all available CSV sources
         List<Participant> allPlayers = HandleCSV.loadParticipants();
 
         if (allPlayers.isEmpty()) {
@@ -53,21 +66,23 @@ public class TeamBuilder {
             return;
         }
 
+        // Randomize the list to ensure fairness in selection
         Collections.shuffle(allPlayers);
 
         List<Team> formedTeams = new ArrayList<>();
         int teamCounter = 1;
         boolean canFormMoreTeams = true;
 
-        // 2. Build Teams Loop
+        // 2. Main Allocation Loop: Attempt to build teams until pool is exhausted
         while (canFormMoreTeams && !allPlayers.isEmpty()) {
             Team currentTeam = new Team(teamCounter);
 
-            // --- STEP 1: FIND A LEADER (Mandatory) ---
+            // --- STEP 1: MANDATORY LEADER ---
+            // Every team must start with one 'Leader' personality type
             Participant leader = findParticipant(allPlayers, currentTeam, "Leader");
 
             if (leader == null) {
-                // If no Leader is available, we cannot start a team. Stop.
+                // Critical Failure: No leaders left, cannot form more valid teams
                 canFormMoreTeams = false;
                 break;
             } else {
@@ -75,14 +90,14 @@ public class TeamBuilder {
                 allPlayers.remove(leader);
             }
 
-            // --- STEP 2: FIND THINKERS (Priority 2) ---
-            // If teamSize is small (<4), we only fill up to the limit.
+            // --- STEP 2: STRATEGIC THINKERS ---
+            // Determine how many 'Thinkers' are needed based on total team size
             int thinkersNeeded = 0;
             if (teamSize >= 2) thinkersNeeded++;
             if (teamSize >= 3) thinkersNeeded++;
 
             for (int i = 0; i < thinkersNeeded; i++) {
-                // Stop trying to add thinkers if we already reached team size (e.g. if size is 2)
+                // Prevent overfilling if team size is very small
                 if (currentTeam.members.size() >= teamSize) break;
 
                 Participant thinker = findParticipant(allPlayers, currentTeam, "Thinker");
@@ -92,7 +107,8 @@ public class TeamBuilder {
                 }
             }
 
-            // --- STEP 3: FILL REST WITH BALANCED (Priority 3) ---
+            // --- STEP 3: FILL WITH BALANCED ---
+            // Fill remaining slots with 'Balanced' personality types
             while (currentTeam.members.size() < teamSize) {
                 Participant balanced = findParticipant(allPlayers, currentTeam, "Balanced");
 
@@ -100,60 +116,65 @@ public class TeamBuilder {
                     currentTeam.members.add(balanced);
                     allPlayers.remove(balanced);
                 } else {
-                    // Ran out of Balanced players to fill the slots
+                    // Pool of 'Balanced' players is exhausted
                     break;
                 }
             }
 
-            // --- STEP 4: STRICT SIZE CHECK ---
-            // This ensures we don't accept incomplete teams (e.g. just a leader)
+            // --- STEP 4: FINAL VALIDATION ---
+            // Ensure the team is fully staffed before accepting it
             if (currentTeam.members.size() == teamSize) {
                 formedTeams.add(currentTeam);
                 LOGGER.info("Formed Team " + teamCounter);
                 teamCounter++;
             } else {
                 System.out.println("Could not fill Team " + teamCounter + " (Size: " + currentTeam.members.size() + "/" + teamSize + "). Stopping.");
-                // Return the members of this failed team back to the pool so they are saved as leftovers
+
+                // Rollback: Return members of the failed team to the main pool
                 allPlayers.addAll(currentTeam.members);
                 LOGGER.warning("Could not fill Team " + teamCounter + ". Disbanding.");
-                canFormMoreTeams = false; // Stop the main loop
+                canFormMoreTeams = false;
             }
         }
 
         LOGGER.info("Process finished. Total teams formed: " + formedTeams.size());
-        saveLeftovers(allPlayers);
 
-        // 3. Output Results
+        // 3. Export Results: Display to console and save to CSV
         displayTeams(formedTeams);
 
-        // 4. Save Leftovers to CSV
+        // 4. Handle Leftovers: Save unassigned participants to a separate file
         saveLeftovers(allPlayers);
     }
 
-    // Helper: Find a specific type of participant that fits criteria
+    /**
+     * Helper method to find a participant that matches the required personality
+     * and fits the current team's balance criteria.
+     */
     private static Participant findParticipant(List<Participant> sourceList, Team team, String requiredType) {
         for (Participant p : sourceList) {
-            // Check if Type matches
+            // Match Personality Type
             if (p.getPersonalityType().equalsIgnoreCase(requiredType)) {
-                // Check if Game/Skill criteria match
+                // Match Game constraints and Skill constraints
                 if (fitsCriteria(team, p)) {
                     return p;
                 }
             }
         }
-        return null; // None found
+        return null; // No matching participant found
     }
 
-    // Helper: Check Game constraints and Skill Balance
+    /**
+     * Validates if a participant matches the game diversity and skill rules.
+     */
     private static boolean fitsCriteria(Team team, Participant p) {
 
-        // "Max 2 from same game per team"
+        // Rule: A team cannot have more than 2 players of the exact same game preference
         if (team.countGame(p.getGame()) >= 2) {
             return false;
         }
 
-        // "Avoid stacking all high-skill players"
-        // If team average is already High (>8) and new player is High (>8), reject.
+        // Rule: Skill Balancing
+        // If the team is already highly skilled (Avg > 8), do not add another high-skill player (> 8)
         if (!team.members.isEmpty()) {
             double currentAvg = team.getAverageSkill();
             int pSkill = Integer.parseInt(p.getSkillLevel());
@@ -165,20 +186,24 @@ public class TeamBuilder {
         return true;
     }
 
+    /**
+     * Output method: Prints team details to console and writes to "formed_teams.csv".
+     */
     private static void displayTeams(List<Team> teams) {
         System.out.println("\n--- TEAMS CREATED ---");
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("formed_teams.csv"))) {
+            // Write CSV Header
             bw.write("TeamID,Role,Name,Game,Skill,PersonalityType");
             bw.newLine();
 
             for (Team t : teams) {
                 System.out.println("Team " + t.teamId + " (Avg Skill: " + String.format("%.2f", t.getAverageSkill()) + ")");
                 for (Participant p : t.members) {
-                    // Print to Console
+                    // Console Output
                     System.out.println(" - " + p.getPersonalityType() + " | " + p.getName() +
                             " | " + p.getGame() + " (" + p.getSkillLevel() + ")");
 
-                    // Write to CSV
+                    // CSV Output
                     String csvLine = t.teamId + "," + p.getRole() + "," + p.getName() + "," +
                             p.getGame() + "," + p.getSkillLevel() + "," + p.getPersonalityType();
                     bw.write(csvLine);
@@ -192,9 +217,13 @@ public class TeamBuilder {
         }
     }
 
+    /**
+     * Handles participants who could not be placed into a team.
+     * Saves them to "leftovers.csv" for future reference.
+     */
     private static void saveLeftovers(List<Participant> leftovers) {
         if (leftovers.isEmpty()) {
-            LOGGER.info("Saving " + leftovers.size() + " leftovers to CSV.");
+            LOGGER.info("No leftovers. All participants assigned.");
             System.out.println("All participants were assigned to teams!");
             return;
         }
@@ -203,13 +232,12 @@ public class TeamBuilder {
         System.out.println("Saving leftovers to leftovers.csv...");
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("leftovers.csv"))) {
-            // Write Header
             bw.write("ID,Name,Email,Game,Skill,Role,PersonalityScore,PersonalityType");
             bw.newLine();
 
             int idCounter = 1;
             for (Participant p : leftovers) {
-                // Generate a temporary ID for the leftover file
+                // Generate temporary ID and write to file
                 String line = "LO" + idCounter + "," + p.toCSVLine();
                 bw.write(line);
                 bw.newLine();
